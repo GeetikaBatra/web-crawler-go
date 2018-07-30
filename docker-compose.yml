@@ -1,0 +1,41 @@
+version: "2"
+services:
+  broker:
+    image: rabbitmq
+    container_name: crawl-broker
+    ports:
+     - "5672:5672"
+     - "15672:15672"
+    environment:
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+  postgres:
+    image: postgres
+    network_mode: bridge
+    ports:
+     - "5432:5432"
+    hostname: crawl-postgres
+    environment:
+      POSTGRESQL_USER: crawl
+      POSTGRESQL_PASSWORD: crawl
+      POSTGRESQL_DATABASE: crawl
+    container_name: crawl-postgres
+
+  crawl-server:
+    build: 
+      context: ./crawlserver
+    network_mode: bridge
+    ports:
+     - "5000:5000"
+    hostname: crawl-server
+    environment:
+      POSTGRESQL_USER: crawl
+      POSTGRESQL_PASSWORD: crawl
+      POSTGRESQL_DATABASE: crawl
+      POSTGRES_SERVICE_HOST: crawl-postgres
+      POSTGRES_SERVICE_PORT: 5432
+    links:
+      - postgres
+    container_name: crawl-server
+    volumes:
+      - ./crawlserver/:/crawlserver
