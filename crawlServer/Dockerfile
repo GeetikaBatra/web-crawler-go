@@ -1,7 +1,6 @@
-FROM golang
+FROM golang:1.7
 
-RUN go get github.com/streadway/amqp
-
+RUN mkdir -p /crawlServer
 WORKDIR /crawlServer
-RUN ls /crawlServer
-RUN go build -o crawl1 . 
+ADD ./crawl1 /crawlServer
+ENTRYPOINT ./crawl1

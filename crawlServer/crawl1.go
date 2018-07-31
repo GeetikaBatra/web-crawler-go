@@ -1,3 +1,5 @@
+package main
+
 import(
    "fmt"
    // "github.com/streadway/amqp"
@@ -16,7 +18,6 @@ func main() {
 	// failOnError(err, "Failed to connect to RabbitMQ")
 
 	// defer conn.Close()
-	fmt.Prntln("*******************	working")
-	for {}
+	fmt.Println("*******************	working")
 
 }
