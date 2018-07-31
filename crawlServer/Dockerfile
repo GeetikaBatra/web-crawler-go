@@ -2,6 +2,6 @@ FROM golang
 
 RUN go get github.com/streadway/amqp
 
-WORKDIR /crawlserver 
+WORKDIR /crawlServer
+RUN ls /crawlServer
 RUN go build -o crawl1 . 
-CMD ["/app/main"]

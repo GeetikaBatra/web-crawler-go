@@ -23,7 +23,7 @@ services:
 
   crawl-server:
     build: 
-      context: ./crawlserver
+      context: ./crawlServer
     network_mode: bridge
     ports:
      - "5000:5000"
@@ -38,4 +38,4 @@ services:
       - postgres
     container_name: crawl-server
     volumes:
-      - ./crawlserver/:/crawlserver
+      - .crawlServer/:/crawlServer
