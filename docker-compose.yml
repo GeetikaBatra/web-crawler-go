@@ -10,10 +10,12 @@ services:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
   postgres:
-    image: postgres
+    image: registry.centos.org/centos/postgresql-94-centos7:latest
     network_mode: bridge
     ports:
      - "5432:5432"
+    expose:
+      - 5432
     hostname: crawl-postgres
     environment:
       POSTGRESQL_USER: crawl
