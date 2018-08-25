@@ -9,24 +9,9 @@ services:
     environment:
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
-  postgres:
-    image: registry.centos.org/centos/postgresql-94-centos7:latest
-    network_mode: bridge
-    ports:
-     - "5432:5432"
-    expose:
-      - 5432
-    hostname: crawl-postgres
-    environment:
-      POSTGRESQL_USER: crawl
-      POSTGRESQL_PASSWORD: crawl
-      POSTGRESQL_DATABASE: crawl
-    container_name: crawl-postgres
-
   crawl-server:
     build: 
-      context: ./crawlServer
-    network_mode: bridge
+      context: .
     ports:
      - "5000:5000"
     hostname: crawl-server
@@ -39,3 +24,39 @@ services:
     links:
       - postgres
     container_name: crawl-server
+  
+  cassandra-docker:
+    image: cassandra:latest
+    container_name: cassandra-docker
+    environment:
+      - CASSANDRA_START_RPC=true
+    ports:
+      - "7000:7000"
+      - "7001:7001"
+      - "7199:7199"
+      - "9042:9042"
+      - "9160:9160"
+    volumes:
+      - ./data:/data
+
+    
+  index:
+    image: elasticsearch:5
+    ports:
+     - "9200:9200"
+     - "9300:9300"
+    volumes:
+     - ./data/elasticsearch/data:/data/elasticsearch/data
+
+
+  janus:
+    build: 
+      context: .
+      dockerfile: Dockerfile.graph
+    hostname: janus
+    links:
+      - cassandra-docker
+    container_name: janus
+    command: ["./bin/gremlin-server.sh", "./conf/gremlin-server/http-gremlin-server.yaml"]
+    ports:
+      - "9192:8182"
