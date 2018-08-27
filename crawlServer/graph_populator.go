@@ -31,7 +31,6 @@ func ConstructGraphNodes(base_url string, url string) string {
 		edge_str := fmt.Sprintf("edge_c = g.V().has('url', '%s').has('url', '%s')"+
 			".in('child_urls').tryNext()"+
 			".orElseGet{base_url_node.addEdge('child_urls', url_node)};", base_url, url)
-		fmt.Println(base_str + new_str + edge_str)
 		return base_str + new_str + edge_str
 	}
 

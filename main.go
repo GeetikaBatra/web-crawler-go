@@ -19,6 +19,9 @@ type RbmqConfig struct {
 	conn    *amqp.Connection
 	rbmqErr error
 }
+type Seen struct {
+	seen map[string]bool
+}
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -28,18 +31,18 @@ func failOnError(err error, msg string) {
 }
 
 // visit appends to links each link found in n, and returns the result.
-func visit(config *RbmqConfig, links []string, n *html.Node, baseUrl string, seen map[string]bool) []string {
+func visit(config *RbmqConfig, links []string, n *html.Node, baseUrl string, seen *Seen) []string {
 	if n.Type == html.ElementNode && n.Data == "a" {
 		for _, a := range n.Attr {
 			if a.Key == "href" {
 
 				if strings.HasPrefix(a.Val, "/") {
-					url_ := baseUrl + a.Val
+					url_ := baseUrl + string(a.Val[1:])
 					links = append(links, url_)
-
-					if !seen[url_] {
-						seen[url_] = true
-						// publishMessages(config, url_)
+					if !seen.seen[url_] {
+						fmt.Println(seen.seen)
+						seen.seen[url_] = true
+						publishMessages(config, url_)
 					}
 
 				}
@@ -49,13 +52,6 @@ func visit(config *RbmqConfig, links []string, n *html.Node, baseUrl string, see
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		links = visit(config, links, c, baseUrl, seen)
 	}
-	fmt.Printf("%v", links)
-	crawlServer.PostGraph(baseUrl, links)
-	// for _, link := range links {
-	// 	result, _ := crawlServer.PostGraph(baseUrl, link)
-
-	// 	fmt.Println(string(result[:]))
-	// }
 
 	return links
 }
@@ -86,7 +82,7 @@ func initAmqp() *RbmqConfig {
 	return config
 }
 
-func consumeMessages(config *RbmqConfig, baseUrl string, seen map[string]bool) {
+func consumeMessages(config *RbmqConfig, baseUrl string, seen *Seen) {
 	var err error
 	msgs, err := config.ch.Consume(
 		"go-crawl-queue", // queue
@@ -104,15 +100,18 @@ func consumeMessages(config *RbmqConfig, baseUrl string, seen map[string]bool) {
 	go func() {
 		fmt.Println("************************REAhed here")
 		for url := range msgs {
-			fmt.Println(url)
 			fmt.Println(string(url.Body[:]))
 			links, err := findLinks(config, string(url.Body[:]), baseUrl, seen)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "findlinks2: %v\n", err)
 			}
+			fmt.Printf("%v", links)
+			if links != nil {
+				crawlServer.PostGraph(string(url.Body[:]), links)
+				fmt.Println(strings.Join(links[:], ","))
+				log.Printf("Received a message: %s", url.Body)
+			}
 
-			fmt.Println(strings.Join(links[:], ","))
-			log.Printf("Received a message: %s", url.Body)
 		}
 	}()
 
@@ -139,23 +138,23 @@ func publishMessages(config *RbmqConfig, url string) {
 func main() {
 	baseUrl := os.Args[1]
 	config := initAmqp()
-	seen := make(map[string]bool)
-	seen[baseUrl] = true
+	seen := &Seen{}
+	seen.seen = make(map[string]bool)
+	seen.seen[baseUrl] = true
 	publishMessages(config, baseUrl)
 	consumeMessages(config, baseUrl, seen)
-	printMap(seen)
+
 	defer config.conn.Close()
 
 }
 
-func printMap(seen map[string]bool) {
-
-	fmt.Println(seen)
-}
-
 // findLinks performs an HTTP GET request for url, parses the
 // response as HTML, and extracts and returns the links.
-func findLinks(config *RbmqConfig, url string, baseUrl string, seen map[string]bool) ([]string, error) {
+func findLinks(config *RbmqConfig, url string, baseUrl string, seen *Seen) ([]string, error) {
+	if !seen.seen[url] {
+		return nil, nil
+	}
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
