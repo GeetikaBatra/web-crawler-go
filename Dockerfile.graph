@@ -15,5 +15,5 @@ WORKDIR janusgraph-0.3.0-hadoop2
 COPY janusfiles/ janusfiles/
 RUN cp janusfiles/http-gremlin-server.yaml conf/gremlin-server/
 RUN cp janusfiles/http-janusgraph-cassandra.properties conf/gremlin-server/
-RUN ls
+RUN cp janusfiles/wait-for-db.sh .
 CMD ["./bin/gremlin-server.sh", "./conf/gremlin-server/http-gremlin-server.yaml"]

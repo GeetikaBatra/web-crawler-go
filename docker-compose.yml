@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   broker:
     image: rabbitmq
@@ -21,8 +21,8 @@ services:
       POSTGRESQL_DATABASE: crawl
       POSTGRES_SERVICE_HOST: crawl-postgres
       POSTGRES_SERVICE_PORT: 5432
-    links:
-      - postgres
+    # links:
+    #   - janus
     container_name: crawl-server
   
   cassandra-docker:
@@ -49,14 +49,17 @@ services:
      - ./data/elasticsearch/data:/data/elasticsearch/data
 
 
-  janus:
-    build: 
-      context: .
-      dockerfile: Dockerfile.graph
-    hostname: janus
-    links:
-      - cassandra-docker
-    container_name: janus
-    command: ["./bin/gremlin-server.sh", "./conf/gremlin-server/http-gremlin-server.yaml"]
-    ports:
-      - "9192:8182"
+  # janus:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile.graph
+  #   hostname: janus
+  #   depends_on:
+  #     - cassandra-docker
+
+  #   links:
+  #     - cassandra-docker
+  #   container_name: janus
+  #   command: ["./bin/gremlin-server.sh", "./conf/gremlin-server/http-gremlin-server.yaml"]
+  #   ports:
+  #     - "9192:8182"
