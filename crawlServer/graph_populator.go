@@ -1,9 +1,11 @@
 package crawlServer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	// "net/http"
+	"io/ioutil"
+	"net/http"
 )
 
 func CreateGremlinQuery(base_url string, url string) ([]byte, error) {
@@ -18,17 +20,17 @@ func CreateGremlinQuery(base_url string, url string) ([]byte, error) {
 
 func ConstructGraphNodes(base_url string, url string) string {
 	if url != "" {
-		base_str := fmt.Sprintf("base_url_node = g.V().has('url','name', \"%s\").tryNext().orElseGet{"+
-			"g.addV('url').property('name', \"%s\").next()}",
+		base_str := fmt.Sprintf("base_url_node = g.V().has('url','name', '%s').tryNext().orElseGet{"+
+			"g.addV('url').property('name', '%s').next()};",
 			base_url, base_url)
 
-		new_str := fmt.Sprintf("url_node = g.V().has('url','name', \"%s\").tryNext().orElseGet{"+
-			"g.addV('url').property('name', \"%s\").next()}",
+		new_str := fmt.Sprintf("url_node = g.V().has('url','name', '%s').tryNext().orElseGet{"+
+			"g.addV('url').property('name', '%s').next()};",
 			url, url)
 
-		edge_str := fmt.Sprintf("edge_c = g.V().has('url', \"%s\").has('url', \"%s\")"+
+		edge_str := fmt.Sprintf("edge_c = g.V().has('url', '%s').has('url', '%s')"+
 			".in('child_urls').tryNext()"+
-			".orElseGet{{base_url_node.addEdge('child_urls', url_node)}};", base_url, url)
+			".orElseGet{base_url_node.addEdge('child_urls', url_node)};", base_url, url)
 		fmt.Println(base_str + new_str + edge_str)
 		return base_str + new_str + edge_str
 	}
@@ -39,24 +41,24 @@ func ConstructGraphNodes(base_url string, url string) string {
 func PostGraph(baseUrl string, links []string) {
 	for _, link := range links {
 		g_query, _ := CreateGremlinQuery(baseUrl, link)
-		fmt.Println(g_query)
-		// 	url := "http://localhost:8182"
-		// 	fmt.Println("URL:>", url)
 
-		// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(g_query))
-		// 	req.Header.Set("Content-Type", "application/json")
+		url := "http://localhost:8182"
+		fmt.Println("URL:>", url)
 
-		// 	client := &http.Client{}
-		// 	resp, err := client.Do(req)
-		// 	if err != nil {
-		// 		panic(err)
-		// 	}
-		// 	defer resp.Body.Close()
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(g_query))
+		req.Header.Set("Content-Type", "application/json")
 
-		// 	fmt.Println("response Status:", resp.Status)
-		// 	fmt.Println("response Headers:", resp.Header)
-		// 	body, _ := ioutil.ReadAll(resp.Body)
-		// 	fmt.Println("response Body:", string(body))
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		fmt.Println("response Status:", resp.Status)
+		fmt.Println("response Headers:", resp.Header)
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
 
 	}
 }
