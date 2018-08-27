@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
+	"github.com/web-crawler-go/crawlServer"
 	"golang.org/x/net/html"
 )
 
@@ -35,19 +36,27 @@ func visit(config *RbmqConfig, links []string, n *html.Node, baseUrl string, see
 				if strings.HasPrefix(a.Val, "/") {
 					url_ := baseUrl + a.Val
 					links = append(links, url_)
+
 					if !seen[url_] {
 						seen[url_] = true
-						publishMessages(config, url_)
+						// publishMessages(config, url_)
 					}
 
 				}
 			}
 		}
 	}
-
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		links = visit(config, links, c, baseUrl, seen)
 	}
+	fmt.Printf("%v", links)
+	crawlServer.PostGraph(baseUrl, links)
+	// for _, link := range links {
+	// 	result, _ := crawlServer.PostGraph(baseUrl, link)
+
+	// 	fmt.Println(string(result[:]))
+	// }
+
 	return links
 }
 func initAmqp() *RbmqConfig {
