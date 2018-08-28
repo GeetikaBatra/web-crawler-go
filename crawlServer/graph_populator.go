@@ -41,7 +41,7 @@ func PostGraph(baseUrl string, links []string) {
 	for _, link := range links {
 		g_query, _ := CreateGremlinQuery(baseUrl, link)
 
-		url := "http://localhost:8182"
+		url := "http://janus:8182"
 		fmt.Println("URL:>", url)
 
 		req, err := http.NewRequest("POST", url, bytes.NewBuffer(g_query))

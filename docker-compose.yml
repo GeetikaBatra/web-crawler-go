@@ -21,8 +21,8 @@ services:
       POSTGRESQL_DATABASE: crawl
       POSTGRES_SERVICE_HOST: crawl-postgres
       POSTGRES_SERVICE_PORT: 5432
-    # links:
-    #   - janus
+    links:
+      - janus
     container_name: crawl-server
   
   cassandra-docker:
@@ -39,27 +39,17 @@ services:
     volumes:
       - ./data:/data
 
-    
-  index:
-    image: elasticsearch:5
+  janus:
+    build: 
+      context: .
+      dockerfile: Dockerfile.graph
+    hostname: janus
+    depends_on:
+      - cassandra-docker
     ports:
-     - "9200:9200"
-     - "9300:9300"
-    volumes:
-     - ./data/elasticsearch/data:/data/elasticsearch/data
-
-
-  # janus:
-  #   build: 
-  #     context: .
-  #     dockerfile: Dockerfile.graph
-  #   hostname: janus
-  #   depends_on:
-  #     - cassandra-docker
-
-  #   links:
-  #     - cassandra-docker
-  #   container_name: janus
-  #   command: ["./bin/gremlin-server.sh", "./conf/gremlin-server/http-gremlin-server.yaml"]
-  #   ports:
-  #     - "9192:8182"
+      - "8182:8182"
+    links:
+      - cassandra-docker
+    container_name: janus
+    ports:
+      - "8182:8182"

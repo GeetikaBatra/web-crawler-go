@@ -57,7 +57,7 @@ func visit(config *RbmqConfig, links []string, n *html.Node, baseUrl string, see
 }
 func initAmqp() *RbmqConfig {
 	config := &RbmqConfig{}
-	config.conn, config.rbmqErr = amqp.Dial("amqp://guest:guest@localhost:5672/")
+	config.conn, config.rbmqErr = amqp.Dial("amqp://guest:guest@crawl-broker:5672/")
 	failOnError(config.rbmqErr, "Failed to connect to RabbitMQ")
 
 	log.Printf("got Connection, getting Channel...")

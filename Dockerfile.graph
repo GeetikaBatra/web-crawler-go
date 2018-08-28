@@ -4,7 +4,7 @@ MAINTAINER Geetika Batra <geetika791@gmail.com>
 
 EXPOSE 8182
 
-RUN yum -y install git wget unzip &&\
+RUN yum -y install nc git wget unzip &&\
 		yum clean all
 
 RUN wget https://github.com/JanusGraph/janusgraph/releases/download/v0.3.0/janusgraph-0.3.0-hadoop2.zip
@@ -12,8 +12,9 @@ RUN wget https://github.com/JanusGraph/janusgraph/releases/download/v0.3.0/janus
 RUN unzip janusgraph-0.3.0-hadoop2.zip
 
 WORKDIR janusgraph-0.3.0-hadoop2
-COPY janusfiles/ janusfiles/
+COPY janusfiles/ janusfiles/	
 RUN cp janusfiles/http-gremlin-server.yaml conf/gremlin-server/
 RUN cp janusfiles/http-janusgraph-cassandra.properties conf/gremlin-server/
 RUN cp janusfiles/wait-for-db.sh .
-CMD ["./bin/gremlin-server.sh", "./conf/gremlin-server/http-gremlin-server.yaml"]
+
+CMD ["./wait-for-db.sh"]
